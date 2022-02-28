@@ -1,0 +1,376 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>linear_sweep</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-02-17"><meta name="DC.source" content="linear_sweep.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Definizione dei parametri</a></li><li><a href="#2">Simulazione della forma d'onda FMCW</a></li><li><a href="#3">Costruzione del modello dell'oggetto da individuare</a></li><li><a href="#4">Setup sistema radar FMCW</a></li><li><a href="#5">Simulazione sistema radar</a></li><li><a href="#6">Stima distanza oggetto in movimento</a></li></ul></div><h2 id="1">Definizione dei parametri</h2><pre class="codeinput"><span class="comment">% frequenza radar, velocit&agrave; luce e fattore lambda</span>
+fc = 77e9;
+c = 3e8;
+lambda = c/fc;
+
+<span class="comment">% massimo range e sweep time (fattore medio 5.5)</span>
+range_max = 1000
+tm = 5.5*range2time(range_max,c);
+
+<span class="comment">% sweep slope sulla base della risoluzione</span>
+range_res = 1;
+bw = rangeres2bw(range_res,c);
+sweep_slope = bw/tm;
+
+<span class="comment">% frequenza calcolata sulla base del range massimo</span>
+fr_max = range2beat(range_max,sweep_slope,c);
+
+<span class="comment">% velocit&agrave; massima oggetto di 300 km/h</span>
+v_max_kmh = 350
+v_max = v_max_kmh*1000/3600;
+fd_max = speed2dop(2*v_max,lambda);
+fb_max = fr_max+fd_max;
+
+<span class="comment">% sample rate pari al doppio della massima beat frequency</span>
+fs = max(2*fb_max,bw);
+</pre><pre class="codeoutput">
+range_max =
+
+        1000
+
+
+v_max_kmh =
+
+   350
+
+</pre><h2 id="2">Simulazione della forma d'onda FMCW</h2><pre class="codeinput"><span class="comment">% definizione della forma d'onda</span>
+waveform = phased.FMCWWaveform(<span class="string">'SweepTime'</span>,tm,<span class="string">'SweepBandwidth'</span>,bw,<span class="keyword">...</span>
+    <span class="string">'SampleRate'</span>,fs);
+
+<span class="comment">% plot rispetto a tempo e frequenza</span>
+sig = waveform();
+subplot(211); plot(0:1/fs:tm-1/fs,real(sig));
+xlabel(<span class="string">'Time (s)'</span>); ylabel(<span class="string">'Amplitude (v)'</span>);
+title(<span class="string">'FMCW signal'</span>); axis <span class="string">tight</span>;
+subplot(212); spectrogram(sig,32,16,32,fs,<span class="string">'yaxis'</span>);
+title(<span class="string">'FMCW signal spectrogram'</span>);
+</pre><img vspace="5" hspace="5" src="linear_sweep_01.png" alt=""> <h2 id="3">Costruzione del modello dell'oggetto da individuare</h2><pre class="codeinput"><span class="comment">% parametri oggetto (distanza e velocit&agrave;)</span>
+obj_dist = 700
+obj_speed_kmh = 300
+obj_speed = obj_speed_kmh*1000/3600;
+obj_rcs = db2pow(min(10*log10(obj_dist)+5,20));
+
+<span class="comment">% costruzione target</span>
+objtarget = phased.RadarTarget(<span class="string">'MeanRCS'</span>,obj_rcs,<span class="string">'PropagationSpeed'</span>,c,<span class="keyword">...</span>
+    <span class="string">'OperatingFrequency'</span>,fc);
+objmotion = phased.Platform(<span class="string">'InitialPosition'</span>,[obj_dist;0;0.5],<span class="keyword">...</span>
+    <span class="string">'Velocity'</span>,[obj_speed;0;0]);
+
+<span class="comment">% canale assunto free space</span>
+channel = phased.FreeSpace(<span class="string">'PropagationSpeed'</span>,c,<span class="keyword">...</span>
+    <span class="string">'OperatingFrequency'</span>,fc,<span class="string">'SampleRate'</span>,fs,<span class="string">'TwoWayPropagation'</span>,true);
+</pre><pre class="codeoutput">
+obj_dist =
+
+   700
+
+
+obj_speed_kmh =
+
+   300
+
+</pre><h2 id="4">Setup sistema radar FMCW</h2><pre class="codeinput"><span class="comment">% set parametri trasmettitore e ricevitore</span>
+ant_aperture = 6.06e-2;                         <span class="comment">% in square meter</span>
+ant_gain = aperture2gain(ant_aperture,lambda);  <span class="comment">% in dB</span>
+
+tx_ppower = db2pow(5)*1e-3;                     <span class="comment">% in watts</span>
+tx_gain = 9+ant_gain;                           <span class="comment">% in dB</span>
+
+rx_gain = 15+ant_gain;                          <span class="comment">% in dB</span>
+rx_nf = 4.5;                                    <span class="comment">% in dB</span>
+
+<span class="comment">% definizione di trasmettitore e ricevitore</span>
+transmitter = phased.Transmitter(<span class="string">'PeakPower'</span>,tx_ppower,<span class="string">'Gain'</span>,tx_gain);
+receiver = phased.ReceiverPreamp(<span class="string">'Gain'</span>,rx_gain,<span class="string">'NoiseFigure'</span>,rx_nf,<span class="keyword">...</span>
+    <span class="string">'SampleRate'</span>,fs);
+
+<span class="comment">% velocit&agrave; dispositivo su cui il radar &egrave; montato</span>
+radar_speed_kmh = 5
+radar_speed = -radar_speed_kmh*1000/3600;
+radarmotion = phased.Platform(<span class="string">'InitialPosition'</span>,[0;0;0.5],<span class="keyword">...</span>
+    <span class="string">'Velocity'</span>,[radar_speed;0;0]);
+</pre><pre class="codeoutput">
+radar_speed_kmh =
+
+     5
+
+</pre><h2 id="5">Simulazione sistema radar</h2><pre class="codeinput"><span class="comment">% analisi spettro segnale ricevuto</span>
+specanalyzer = dsp.SpectrumAnalyzer(<span class="string">'SampleRate'</span>,fs,<span class="keyword">...</span>
+    <span class="string">'PlotAsTwoSidedSpectrum'</span>,true,<span class="keyword">...</span>
+    <span class="string">'Title'</span>,<span class="string">'Spectrum for received and dechirped signal'</span>,<span class="keyword">...</span>
+    <span class="string">'ShowLegend'</span>,true);
+
+rng(2012);
+Nsweep = 10000;
+xr = complex(zeros(waveform.SampleRate*waveform.SweepTime,Nsweep));
+
+<span class="comment">% loop simulazione</span>
+<span class="keyword">for</span> m = 1:Nsweep
+    <span class="comment">% Update radar and target positions</span>
+    [radar_pos,radar_vel] = radarmotion(waveform.SweepTime);
+    [tgt_pos,tgt_vel] = objmotion(waveform.SweepTime);
+
+    <span class="comment">% Transmit FMCW waveform</span>
+    sig = waveform();
+    txsig = transmitter(sig);
+
+    <span class="comment">% Propagate the signal and reflect off the target</span>
+    txsig = channel(txsig,radar_pos,tgt_pos,radar_vel,tgt_vel);
+    txsig = objtarget(txsig);
+
+    <span class="comment">% Dechirp the received radar return</span>
+    txsig = receiver(txsig);
+    dechirpsig = dechirp(txsig,sig);
+
+    <span class="comment">% Visualize the spectrum</span>
+    specanalyzer([txsig dechirpsig]);
+
+    xr(:,m) = dechirpsig;
+<span class="keyword">end</span>
+</pre><img vspace="5" hspace="5" src="linear_sweep_02.png" alt=""> <h2 id="6">Stima distanza oggetto in movimento</h2><pre class="codeinput"><span class="comment">% analisi risposta doppler</span>
+rngdopresp = phased.RangeDopplerResponse(<span class="string">'PropagationSpeed'</span>,c,<span class="keyword">...</span>
+    <span class="string">'DopplerOutput'</span>,<span class="string">'Speed'</span>,<span class="string">'OperatingFrequency'</span>,fc,<span class="string">'SampleRate'</span>,fs,<span class="keyword">...</span>
+    <span class="string">'RangeMethod'</span>,<span class="string">'FFT'</span>,<span class="string">'SweepSlope'</span>,sweep_slope,<span class="keyword">...</span>
+    <span class="string">'RangeFFTLengthSource'</span>,<span class="string">'Property'</span>,<span class="string">'RangeFFTLength'</span>,2048,<span class="keyword">...</span>
+    <span class="string">'DopplerFFTLengthSource'</span>,<span class="string">'Property'</span>,<span class="string">'DopplerFFTLength'</span>,256);
+
+clf;
+plotResponse(rngdopresp,xr);                     <span class="comment">% Plot range Doppler map</span>
+axis([-v_max v_max 0 range_max])
+clim = caxis;
+
+<span class="comment">% ottimizzazione frequenza campionamento post-ricezione</span>
+Dn = fix(fs/(2*fb_max));
+<span class="keyword">for</span> m = size(xr,2):-1:1
+    xr_d(:,m) = decimate(xr(:,m),Dn,<span class="string">'FIR'</span>);
+<span class="keyword">end</span>
+fs_d = fs/Dn;
+
+<span class="comment">% stima distanza</span>
+fb_rng = rootmusic(pulsint(xr_d,<span class="string">'coherent'</span>),1,fs_d);
+rng_est = beat2range(fb_rng,sweep_slope,c)
+</pre><pre class="codeoutput">
+rng_est =
+
+  636.2822
+
+</pre><img vspace="5" hspace="5" src="linear_sweep_03.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Definizione dei parametri
+
+% frequenza radar, velocità luce e fattore lambda
+fc = 77e9;
+c = 3e8;
+lambda = c/fc;
+
+% massimo range e sweep time (fattore medio 5.5)
+range_max = 1000
+tm = 5.5*range2time(range_max,c);
+
+% sweep slope sulla base della risoluzione
+range_res = 1;
+bw = rangeres2bw(range_res,c);
+sweep_slope = bw/tm;
+
+% frequenza calcolata sulla base del range massimo
+fr_max = range2beat(range_max,sweep_slope,c);
+
+% velocità massima oggetto di 300 km/h
+v_max_kmh = 350
+v_max = v_max_kmh*1000/3600;
+fd_max = speed2dop(2*v_max,lambda);
+fb_max = fr_max+fd_max;
+
+% sample rate pari al doppio della massima beat frequency
+fs = max(2*fb_max,bw);
+
+
+%% Simulazione della forma d'onda FMCW
+
+% definizione della forma d'onda
+waveform = phased.FMCWWaveform('SweepTime',tm,'SweepBandwidth',bw,...
+    'SampleRate',fs);
+
+% plot rispetto a tempo e frequenza
+sig = waveform();
+subplot(211); plot(0:1/fs:tm-1/fs,real(sig));
+xlabel('Time (s)'); ylabel('Amplitude (v)');
+title('FMCW signal'); axis tight;
+subplot(212); spectrogram(sig,32,16,32,fs,'yaxis');
+title('FMCW signal spectrogram');
+
+%% Costruzione del modello dell'oggetto da individuare
+
+% parametri oggetto (distanza e velocità)
+obj_dist = 700
+obj_speed_kmh = 300
+obj_speed = obj_speed_kmh*1000/3600;
+obj_rcs = db2pow(min(10*log10(obj_dist)+5,20));
+
+% costruzione target
+objtarget = phased.RadarTarget('MeanRCS',obj_rcs,'PropagationSpeed',c,...
+    'OperatingFrequency',fc);
+objmotion = phased.Platform('InitialPosition',[obj_dist;0;0.5],...
+    'Velocity',[obj_speed;0;0]);
+
+% canale assunto free space
+channel = phased.FreeSpace('PropagationSpeed',c,...
+    'OperatingFrequency',fc,'SampleRate',fs,'TwoWayPropagation',true);
+
+
+%% Setup sistema radar FMCW
+
+% set parametri trasmettitore e ricevitore
+ant_aperture = 6.06e-2;                         % in square meter
+ant_gain = aperture2gain(ant_aperture,lambda);  % in dB
+
+tx_ppower = db2pow(5)*1e-3;                     % in watts
+tx_gain = 9+ant_gain;                           % in dB
+
+rx_gain = 15+ant_gain;                          % in dB
+rx_nf = 4.5;                                    % in dB
+
+% definizione di trasmettitore e ricevitore
+transmitter = phased.Transmitter('PeakPower',tx_ppower,'Gain',tx_gain);
+receiver = phased.ReceiverPreamp('Gain',rx_gain,'NoiseFigure',rx_nf,...
+    'SampleRate',fs);
+
+% velocità dispositivo su cui il radar è montato
+radar_speed_kmh = 5
+radar_speed = -radar_speed_kmh*1000/3600;
+radarmotion = phased.Platform('InitialPosition',[0;0;0.5],...
+    'Velocity',[radar_speed;0;0]);
+
+
+%% Simulazione sistema radar
+
+% analisi spettro segnale ricevuto
+specanalyzer = dsp.SpectrumAnalyzer('SampleRate',fs,...
+    'PlotAsTwoSidedSpectrum',true,...
+    'Title','Spectrum for received and dechirped signal',...
+    'ShowLegend',true);
+
+rng(2012);
+Nsweep = 10000;
+xr = complex(zeros(waveform.SampleRate*waveform.SweepTime,Nsweep));
+
+% loop simulazione
+for m = 1:Nsweep
+    % Update radar and target positions
+    [radar_pos,radar_vel] = radarmotion(waveform.SweepTime);
+    [tgt_pos,tgt_vel] = objmotion(waveform.SweepTime);
+
+    % Transmit FMCW waveform
+    sig = waveform();
+    txsig = transmitter(sig);
+
+    % Propagate the signal and reflect off the target
+    txsig = channel(txsig,radar_pos,tgt_pos,radar_vel,tgt_vel);
+    txsig = objtarget(txsig);
+
+    % Dechirp the received radar return
+    txsig = receiver(txsig);
+    dechirpsig = dechirp(txsig,sig);
+
+    % Visualize the spectrum
+    specanalyzer([txsig dechirpsig]);
+
+    xr(:,m) = dechirpsig;
+end
+
+
+%% Stima distanza oggetto in movimento
+
+% analisi risposta doppler
+rngdopresp = phased.RangeDopplerResponse('PropagationSpeed',c,...
+    'DopplerOutput','Speed','OperatingFrequency',fc,'SampleRate',fs,...
+    'RangeMethod','FFT','SweepSlope',sweep_slope,...
+    'RangeFFTLengthSource','Property','RangeFFTLength',2048,...
+    'DopplerFFTLengthSource','Property','DopplerFFTLength',256);
+
+clf;
+plotResponse(rngdopresp,xr);                     % Plot range Doppler map
+axis([-v_max v_max 0 range_max])
+clim = caxis;
+
+% ottimizzazione frequenza campionamento post-ricezione
+Dn = fix(fs/(2*fb_max));
+for m = size(xr,2):-1:1
+    xr_d(:,m) = decimate(xr(:,m),Dn,'FIR');
+end
+fs_d = fs/Dn;
+
+% stima distanza
+fb_rng = rootmusic(pulsint(xr_d,'coherent'),1,fs_d);
+rng_est = beat2range(fb_rng,sweep_slope,c)
+##### SOURCE END #####
+--></body></html>

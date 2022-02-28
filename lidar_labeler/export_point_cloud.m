@@ -1,0 +1,1 @@
+pcwrite(sensors_short(20).PointClouds{1, 1},'driving_scenario_PC_short','PLYFormat','binary');

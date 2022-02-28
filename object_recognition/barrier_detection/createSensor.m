@@ -1,0 +1,9 @@
+function sensor = createSensor(scenario)
+% createSensors Returns all sensor objects to generate detections
+
+% Assign into each sensor the physical and radar profiles for all actors
+profiles = actorProfiles(scenario);
+sensor = lidarPointCloudGenerator('SensorIndex', 1, ...
+    'SensorLocation', [0.05 0], ...
+    'EgoVehicleActorID', 2, ...
+    'ActorProfiles', profiles);

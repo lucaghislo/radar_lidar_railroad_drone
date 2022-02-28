@@ -1,0 +1,3 @@
+License for Track Vehicles Using Lidar Data Set
+
+Permission is granted to use, display, distribute, publish, incorporate in other content, and modify this data set on a non-exclusive basis.
