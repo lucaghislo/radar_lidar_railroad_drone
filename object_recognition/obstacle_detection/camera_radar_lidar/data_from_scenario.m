@@ -1,0 +1,1 @@
+[allData, scenario, sensors] = trainScenario_short_allsensors()

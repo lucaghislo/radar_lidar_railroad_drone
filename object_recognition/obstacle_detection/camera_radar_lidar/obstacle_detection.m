@@ -1,5 +1,5 @@
 % Read a scan of lidar data
-ptCloud = sensors_short(1).PointClouds{1, 1};
+ptCloud = sensors_curve(1).PointClouds;
 load("roads_actors.mat");
 vehicleDims = data.ActorSpecifications(1, 2);
 
@@ -70,9 +70,9 @@ helperUpdateView(lidarViewer, ptCloud, points, colors, closePlayer);
 
 %% Process Lidar Sequence
 i = 1;
-while i<56
+while i<174
     % Grab the next lidar scan
-    ptCloud = sensors_short(i).PointClouds{1, 1};
+    ptCloud = sensors_curve(i).PointClouds;
     
     % Segment points belonging to the ego vehicle
     points.EgoPoints = lidar_segmentation_function(ptCloud, vehicleDims, mountLocation);
@@ -92,7 +92,7 @@ while i<56
     % Update lidar display
     isPlayerOpen = helperUpdateView(lidarViewer, ptCloud, points, colors, closePlayer);
 
-    i = i+1 %#ok<NOPTS>     
+    i = i+10 %#ok<NOPTS>     
 end
 snapnow
 
