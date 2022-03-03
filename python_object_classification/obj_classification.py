@@ -5,7 +5,7 @@ nms_threshold = 0.2
 cap = cv2.VideoCapture(0)
  
 classNames= []
-classFile = 'coco.names'
+classFile = 'nomenclature.names'
 with open(classFile,'rt') as f:
     classNames = f.read().split('\n')
  
