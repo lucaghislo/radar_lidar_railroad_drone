@@ -1,0 +1,26 @@
+<annotation verified="yes">
+	<folder>images</folder>
+	<filename>My_dog.jpg</filename>
+	<path>/home/lucaghislotti/Documents/GitHub/lucaghislo/radar_lidar_railroad_drone/python_object_classification/gun_classifier/images/My_dog.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>3072</width>
+		<height>2304</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>dog</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>258</xmin>
+			<ymin>28</ymin>
+			<xmax>2469</xmax>
+			<ymax>2236</ymax>
+		</bndbox>
+	</object>
+</annotation>
