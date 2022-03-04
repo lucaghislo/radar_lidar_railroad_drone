@@ -1,0 +1,26 @@
+<annotation>
+	<folder>images</folder>
+	<filename>kangaroo-599.jpg</filename>
+	<path>/home/hugo/Documents/projects/tfjs/dataset/images/kangaroo-599.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>683</width>
+		<height>1024</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>kangaroo</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>157</xmin>
+			<ymin>256</ymin>
+			<xmax>479</xmax>
+			<ymax>900</ymax>
+		</bndbox>
+	</object>
+</annotation>
